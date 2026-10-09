@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>StudySpark | AI Study Companion</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="script.js" defer></script>
+  <script src="answer-checker.js" defer></script>
+</head>
+
+<body>
+
+  <!-- ================================
+       HEADER
+  ================================= -->
+
+  <header class="site-header">
+
+    <a class="brand" href="#">
+      ✨ StudySpark
+    </a>
+
+    <span class="team">
+      TEAM RYZEN
+    </span>
+
+  </header>
+
+
+  <!-- ================================
+       MAIN CONTENT
+  ================================= -->
+
+  <main class="container">
+
+
+    <!-- ================================
+         HERO SECTION
+    ================================= -->
+
+    <section class="hero">
+
+      <p class="eyebrow">
+        ✨ AI-POWERED PERSONAL STUDY COMPANION
+      </p>
+
+      <h1>
+        Learn your way.<br>
+        <span>Stay engaged.</span>
+      </h1>
+
+      <p>
+        StudySpark adapts your learning experience to your
+        <strong>mood, time and learning goal</strong> —
+        so every study session feels personal.
+      </p>
+
+
+      <!-- HERO FEATURES -->
+
+      <div class="hero-features">
+
+        <div class="hero-feature">
+
+          <span>🧠</span>
+
+          <div>
+            <strong>Personalized</strong>
+            <small>Plans made for you</small>
+          </div>
+
+        </div>
+
+
+        <div class="hero-feature">
+
+          <span>⚡</span>
+
+          <div>
+            <strong>AI Powered</strong>
+            <small>Instant feedback</small>
+          </div>
+
+        </div>
+
+
+        <div class="hero-feature">
+
+          <span>🎯</span>
+
+          <div>
+            <strong>Engaging</strong>
+            <small>Learn actively</small>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================================
+         STEP 01 — STUDY PLAN
+    ================================= -->
+
+    <section class="panel" id="workspace">
+
+      <div class="section-heading">
+
+        <span class="step">
+          01
+        </span>
+
+        <div>
+
+          <h2>
+            Create your study plan
+          </h2>
+
+          <p>
+            Tell StudySpark what you want to learn today.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <form id="studyForm">
+
+
+        <!-- MOOD -->
+
+        <h3>
+          How are you feeling?
+        </h3>
+
+
+        <div class="choice-grid mood-options">
+
+          <button
+            type="button"
+            class="choice mood-option"
+            data-mood="bored"
+          >
+            😴
+            <span>Bored</span>
+          </button>
+
+
+          <button
+            type="button"
+            class="choice mood-option"
+            data-mood="confused"
+          >
+            😕
+            <span>Confused</span>
+          </button>
+
+
+          <button
+            type="button"
+            class="choice mood-option"
+            data-mood="low-energy"
+          >
+            🔋
+            <span>Low energy</span>
+          </button>
+
+
+          <button
+            type="button"
+            class="choice mood-option"
+            data-mood="curious"
+          >
+            🤔
+            <span>Curious</span>
+          </button>
+
+
+          <button
+            type="button"
+            class="choice mood-option"
+            data-mood="challenge"
+          >
+            🔥
+            <span>Challenge me</span>
+          </button>
+
+        </div>
+
+
+
+        <!-- TIME -->
+
+        <h3>
+          How much time do you have?
+        </h3>
+
+
+        <div class="choice-grid time-options">
+
+          <button
+            type="button"
+            class="choice time-option"
+            data-time="10"
+          >
+            10 min
+          </button>
+
+
+          <button
+            type="button"
+            class="choice time-option selected"
+            data-time="15"
+          >
+            15 min
+          </button>
+
+
+          <button
+            type="button"
+            class="choice time-option"
+            data-time="30"
+          >
+            30 min
+          </button>
+
+
+          <button
+            type="button"
+            class="choice time-option"
+            data-time="60"
+          >
+            60 min
+          </button>
+
+        </div>
+
+
+
+        <!-- SUBJECT + TOPIC -->
+
+        <div class="form-grid">
+
+
+          <div>
+
+            <label for="subject">
+              Subject
+            </label>
+
+            <select id="subject" name="subject" required>
+  <option value="">Choose a subject</option>
+  <option value="Computer Science">Computer Science</option>
+  <option value="Mathematics">Mathematics</option>
+  <option value="Physics">Physics</option>
+  <option value="Chemistry">Chemistry</option>
+  <option value="Biology">Biology</option>
+  <option value="English">English</option>
+  <option value="History">History</option>
+  <option value="Geography">Geography</option>
+</select>
+          </div>
+
+
+
+          <div>
+
+            <label for="topic">
+              Topic
+            </label>
+
+            <select id="topic" name="topic" required>
+  <option value="">Choose a topic</option>
+  <option value="Variables">Variables</option>
+  <option value="Functions">Functions</option>
+  <option value="Loops">Loops</option>
+  <option value="Arrays">Arrays</option>
+  <option value="OOP">Object-Oriented Programming</option>
+  <option value="HTML and CSS">HTML & CSS</option>
+  <option value="JavaScript">JavaScript</option>
+  <option value="Computer Networks">Computer Networks</option>
+</select>xlength="200"
+            >
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ACTIVITY COUNT -->
+
+        <label for="topicCount">
+          Number of activities
+        </label>
+
+
+        <select
+          id="topicCount"
+          name="topicCount"
+        >
+
+          <option value="3">
+            3 activities
+          </option>
+
+          <option value="4">
+            4 activities
+          </option>
+
+          <option value="5">
+            5 activities
+          </option>
+
+          <option value="6">
+            6 activities
+          </option>
+
+        </select>
+
+
+        <!-- STATUS -->
+
+        <p
+          id="formMessage"
+          class="status"
+          role="status"
+        ></p>
+
+
+        <!-- CREATE PLAN -->
+
+        <button
+          class="primary full"
+          type="submit"
+          id="createPlanBtn"
+        >
+          ✨ Create my study plan
+        </button>
+
+
+      </form>
+
+    </section>
+
+
+
+    <!-- ================================
+         STEP 02 — STUDY PLAN RESULT
+    ================================= -->
+
+    <section
+      class="panel"
+      id="resultPanel"
+    >
+
+      <div class="section-heading">
+
+        <span class="step">
+          02
+        </span>
+
+        <div>
+
+          <h2>
+            Your study plan
+          </h2>
+
+          <p>
+            Complete activities as you go.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- EMPTY STATE -->
+
+      <div
+        id="emptyState"
+        class="empty-state"
+      >
+
+        <span>
+          🌱
+        </span>
+
+        <h3>
+          Your next learning win starts here
+        </h3>
+
+        <p>
+          Create a study plan above to see your activities.
+        </p>
+
+      </div>
+
+
+      <!-- GENERATED PLAN -->
+
+      <div
+        id="planContent"
+        hidden
+      ></div>
+
+
+      <!-- SESSION COUNT -->
+
+      <p class="session-count">
+
+        Completed activities:
+
+        <strong id="sessionsCompleted">
+          0
+        </strong>
+
+      </p>
+
+    </section>
+
+
+
+    <!-- ================================
+         STEP 03 — AI ANSWER CHECKER
+    ================================= -->
+
+    <section
+      class="panel"
+      id="answerChecker"
+    >
+
+
+      <div class="section-heading">
+
+        <span class="step">
+          03
+        </span>
+
+        <div>
+
+          <h2>
+            AI Answer Checker
+          </h2>
+
+          <p>
+            Generate a question, answer it,
+            and get useful feedback.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- GENERATE QUESTION -->
+
+      <button
+        type="button"
+        class="secondary full"
+        id="generateQuestionBtn"
+      >
+        🎯 Generate AI question
+      </button>
+
+
+
+      <!-- QUESTION -->
+
+      <div
+        id="generatedQuestion"
+        class="question-box"
+        aria-live="polite"
+      >
+
+        Choose a subject and topic above,
+        then generate a question.
+
+      </div>
+
+
+
+      <!-- ANSWER -->
+
+      <label for="studentAnswer">
+        Your answer
+      </label>
+
+
+      <textarea
+        id="studentAnswer"
+        rows="5"
+        placeholder="Write your answer here..."
+      ></textarea>
+
+
+
+      <!-- CHECK ANSWER -->
+
+      <button
+        type="button"
+        class="primary full"
+        id="checkAnswerBtn"
+      >
+        ✨ Check my answer
+      </button>
+
+
+
+      <!-- STATUS -->
+
+      <p
+        id="answerStatus"
+        class="status"
+        role="status"
+      ></p>
+
+
+
+      <!-- AI FEEDBACK -->
+
+      <div
+        id="aiFeedback"
+        aria-live="polite"
+      ></div>
+
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- ================================
+       FOOTER
+  ================================= -->
+
+  <footer>
+
+    <span>
+      Made for learners 💜
+    </span>
+
+    <span>
+      StudySpark · TEAM RYZEN
+    </span>
+
+  </footer>
+
+
+</body>
+</html>
