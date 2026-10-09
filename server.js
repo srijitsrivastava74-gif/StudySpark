@@ -14,72 +14,133 @@ app.use(express.static(__dirname));
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const MODEL =
+  process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 
-// ================================
-// AI HELPER
-// ================================
+/* =========================================
+   GEMINI AI HELPER WITH AUTOMATIC RETRY
+========================================= */
 
 async function askAI(prompt) {
 
   if (!ai) {
     throw new Error(
-      "GEMINI_API_KEY is not set in the .env file."
+      "GEMINI_API_KEY is not set."
     );
   }
 
-  const result = await ai.models.generateContent({
-    model: MODEL,
-    contents: prompt
-  });
+  const maxAttempts = 3;
 
-  return result.text || "";
+  for (
+    let attempt = 1;
+    attempt <= maxAttempts;
+    attempt++
+  ) {
+
+    try {
+
+      const result =
+        await ai.models.generateContent({
+          model: MODEL,
+          contents: prompt
+        });
+
+      return result.text || "";
+
+    } catch (error) {
+
+      const message =
+        error?.message || "";
+
+      console.error(
+        `Gemini attempt ${attempt} failed:`,
+        message
+      );
+
+      const temporaryError =
+        message.includes("503") ||
+        message.includes("UNAVAILABLE") ||
+        message.includes("429") ||
+        message.includes("RESOURCE_EXHAUSTED");
+
+      /*
+        API key / coding errors ko retry nahi karna.
+        Sirf temporary server/quota errors retry honge.
+      */
+
+      if (
+        !temporaryError ||
+        attempt === maxAttempts
+      ) {
+        throw error;
+      }
+
+      const waitTime =
+        attempt * 3000;
+
+      console.log(
+        `Retrying Gemini in ${waitTime / 1000} seconds...`
+      );
+
+      await new Promise(
+        resolve =>
+          setTimeout(resolve, waitTime)
+      );
+    }
+  }
 }
 
 
-// ================================
-// JSON HELPER
-// ================================
+/* =========================================
+   SAFE JSON PARSER
+========================================= */
 
 function parseJSON(text) {
 
-  const cleaned = text
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/, "")
-    .trim();
+  const cleaned =
+    text
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
 
   return JSON.parse(cleaned);
 }
 
 
-/* ================================
-   GENERATE AI QUESTION
-================================ */
+/* =========================================
+   1. GENERATE AI QUESTION
+========================================= */
 
-app.post("/api/generate-question", async (req, res) => {
+app.post(
+  "/api/generate-question",
+  async (req, res) => {
 
-  try {
+    try {
 
-    const { subject, topic } = req.body || {};
-
-    if (
-      typeof subject !== "string" ||
-      typeof topic !== "string" ||
-      !subject.trim() ||
-      !topic.trim()
-    ) {
-
-      return res.status(400).json({
-        error:
-          "Please enter both subject and topic."
-      });
-
-    }
+      const {
+        subject,
+        topic
+      } = req.body || {};
 
 
-    const prompt = `
+      if (
+        typeof subject !== "string" ||
+        typeof topic !== "string" ||
+        !subject.trim() ||
+        !topic.trim()
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Please enter both subject and topic."
+        });
+
+      }
+
+
+      const prompt = `
 You are a friendly educational tutor.
 
 Generate ONE clear, age-appropriate educational question.
@@ -97,82 +158,87 @@ ${subject.trim().slice(0, 100)}
 Topic:
 ${topic.trim().slice(0, 200)}
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in exactly this format:
 
 {"question":"Your question here"}
 `;
 
 
-    const data =
-      parseJSON(await askAI(prompt));
+      const data =
+        parseJSON(
+          await askAI(prompt)
+        );
 
 
-    if (
-      typeof data.question !== "string" ||
-      !data.question.trim()
-    ) {
+      if (
+        typeof data.question !== "string" ||
+        !data.question.trim()
+      ) {
 
-      throw new Error(
-        "Invalid question response"
+        throw new Error(
+          "Invalid question response."
+        );
+
+      }
+
+
+      res.json({
+        question:
+          data.question.trim()
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "Question generation error:",
+        error.message
       );
 
-    }
 
-
-    res.json({
-      question:
-        data.question.trim()
-    });
-
-
-  } catch (error) {
-
-    console.error(
-      "Question generation error:",
-      error.message
-    );
-
-
-    res.status(500).json({
-      error:
-        "Question generation failed. Please check the API key, model, and internet connection."
-    });
-
-  }
-
-});
-
-
-/* ================================
-   CHECK STUDENT ANSWER
-================================ */
-
-app.post("/api/check-answer", async (req, res) => {
-
-  try {
-
-    const {
-      question,
-      studentAnswer
-    } = req.body || {};
-
-
-    if (
-      typeof question !== "string" ||
-      typeof studentAnswer !== "string" ||
-      !question.trim() ||
-      !studentAnswer.trim()
-    ) {
-
-      return res.status(400).json({
+      res.status(500).json({
         error:
-          "Question and answer are required."
+          "Question generation failed. Please try again."
       });
 
     }
 
+  }
+);
 
-    const prompt = `
+
+/* =========================================
+   2. CHECK STUDENT ANSWER
+========================================= */
+
+app.post(
+  "/api/check-answer",
+  async (req, res) => {
+
+    try {
+
+      const {
+        question,
+        studentAnswer
+      } = req.body || {};
+
+
+      if (
+        typeof question !== "string" ||
+        typeof studentAnswer !== "string" ||
+        !question.trim() ||
+        !studentAnswer.trim()
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Question and answer are required."
+        });
+
+      }
+
+
+      const prompt = `
 You are a fair, encouraging educational tutor.
 
 Evaluate the student's answer.
@@ -210,55 +276,58 @@ Return ONLY valid JSON using exactly this schema:
 `;
 
 
-    const data =
-      parseJSON(await askAI(prompt));
+      const data =
+        parseJSON(
+          await askAI(prompt)
+        );
 
 
-    res.json({
+      res.json({
 
-      correct:
-        data.correct === true,
+        correct:
+          data.correct === true,
 
-      feedback:
-        String(
-          data.feedback ||
-          "Your answer has been evaluated."
-        ),
+        feedback:
+          String(
+            data.feedback ||
+            "Your answer has been evaluated."
+          ),
 
-      suggestion:
-        String(
-          data.suggestion || ""
-        ),
+        suggestion:
+          String(
+            data.suggestion || ""
+          ),
 
-      improvedAnswer:
-        String(
-          data.improvedAnswer || ""
-        )
+        improvedAnswer:
+          String(
+            data.improvedAnswer || ""
+          )
 
-    });
-
-
-  } catch (error) {
-
-    console.error(
-      "Answer checking error:",
-      error.message
-    );
+      });
 
 
-    res.status(500).json({
-      error:
-        "AI answer checking failed. Please check the API key, model, and server logs."
-    });
+    } catch (error) {
+
+      console.error(
+        "Answer checking error:",
+        error.message
+      );
+
+
+      res.status(500).json({
+        error:
+          "AI answer checking failed. Please try again."
+      });
+
+    }
 
   }
+);
 
-});
 
-
-/* ================================
-   ADAPTIVE LEARNING
-================================ */
+/* =========================================
+   3. ADAPTIVE LEARNING
+========================================= */
 
 app.post(
   "/api/adaptive-feedback",
@@ -316,18 +385,14 @@ ${String(
   mood || "not specified"
 ).slice(0, 50)}
 
-
 Question:
 ${question.trim().slice(0, 2000)}
-
 
 Student answer:
 ${studentAnswer.trim().slice(0, 5000)}
 
-
 Answer correctness:
 ${correct ? "Correct" : "Incorrect"}
-
 
 ADAPTIVE RULES:
 
@@ -378,7 +443,9 @@ Return ONLY valid JSON in exactly this format:
 
 
       const data =
-        parseJSON(await askAI(prompt));
+        parseJSON(
+          await askAI(prompt)
+        );
 
 
       res.json({
@@ -414,7 +481,7 @@ Return ONLY valid JSON in exactly this format:
 
       res.status(500).json({
         error:
-          "Adaptive recommendation failed."
+          "Adaptive recommendation failed. Please try again."
       });
 
     }
@@ -423,27 +490,37 @@ Return ONLY valid JSON in exactly this format:
 );
 
 
-/* ================================
+/* =========================================
    HOME PAGE
-================================ */
+========================================= */
 
-app.get("/", (_req, res) => {
+app.get(
+  "/",
+  (_req, res) => {
 
-  res.sendFile(
-    path.join(__dirname, "index.html")
-  );
+    res.sendFile(
+      path.join(
+        __dirname,
+        "index.html"
+      )
+    );
 
-});
+  }
+);
 
 
-/* ================================
+/* =========================================
    START SERVER
-================================ */
+========================================= */
 
-app.listen(PORT, () => {
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
 
-  console.log(
-    `StudySpark running at http://localhost:${PORT}`
-  );
+    console.log(
+      `StudySpark running on port ${PORT}`
+    );
 
-});
+  }
+);
